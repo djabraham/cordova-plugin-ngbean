@@ -126,13 +126,21 @@ public class PTBeanPlugin extends CordovaPlugin {
 
     if (action.equals("isenabled")) {
 
-      if ((bluetoothAdapter != null) && bluetoothAdapter.isEnabled()) {
-        callbackContext.success();
-        return true;
-      } else {
-        callbackContext.error("Bluetooth is currently disabled");
+      JSONObject jInfo = new JSONObject();
+      try {
+        if ((bluetoothAdapter != null) && bluetoothAdapter.isEnabled()) {
+          jInfo.put("enabled", true);
+        } else {
+          jInfo.put("enabled", false);
+        }
+      } catch (JSONException ex) {
+        Log.i(TAG, "Exception creating JSON: " + ex.toString());
+        callbackContext.error(ex.toString());
         return false;
       }
+
+      callbackContext.success(jInfo);
+      return true;
 
     } else if (action.equals("enable")) {
 
