@@ -6,14 +6,19 @@ import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.PluginResult;
 
+import android.app.Activity;
 import android.provider.Settings;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.bluetooth.BluetoothManager;
 import android.os.AsyncTask;
 import android.widget.Toast;
 import android.util.Log;
+import android.content.pm.PackageManager;
+import android.content.Intent;
 import android.content.Context;
+import android.os.Build;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -42,6 +47,11 @@ public class PTBeanPlugin extends CordovaPlugin {
   public static Bean beanSelected = null;
   public static ArrayList<Bean> beanList = new ArrayList<Bean>();
   public static PTBeanListener ptBeanListener = null;
+
+  private BluetoothAdapter bluetoothAdapter;
+  private CallbackContext enableBluetoothCallback;
+
+  private static final int REQUEST_ENABLE_BLUETOOTH = 1;
 
 	/*
 	* Constructor.
@@ -75,10 +85,63 @@ public class PTBeanPlugin extends CordovaPlugin {
     return jsonArray;
   }
 
+  @Override
+  public void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+    if (requestCode == REQUEST_ENABLE_BLUETOOTH) {
+
+      if (resultCode == Activity.RESULT_OK) {
+        LOG.i(TAG, "User enabled Bluetooth");
+        if (enableBluetoothCallback != null) {
+          enableBluetoothCallback.success();
+        }
+      } else {
+        LOG.i(TAG, "User didn't enable Bluetooth");
+        if (enableBluetoothCallback != null) {
+          enableBluetoothCallback.error("User didn't enable Bluetooth");
+        }
+      }
+
+      enableBluetoothCallback = null;
+    }
+  }
+
 	public boolean execute(String action, final JSONArray args, final CallbackContext callbackContext) throws JSONException {
 		Log.i(TAG, "Received action: "+ action + "; Args:  " + args);
 
-    if (action.equals("find")) {
+    if (bluetoothAdapter == null) {
+      Activity activity = cordova.getActivity();
+      boolean hardwareSupportsBLE = activity.getApplicationContext().getPackageManager()
+          .hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE) && Build.VERSION.SDK_INT >= 18;
+
+      if (!hardwareSupportsBLE) {
+        LOG.w(TAG, "BLE communication is not supported");
+        callbackContext.error("BLE communication is not supported");
+        return false;
+      }
+
+      BluetoothManager bluetoothManager = (BluetoothManager) activity.getSystemService(Context.BLUETOOTH_SERVICE);
+      bluetoothAdapter = bluetoothManager.getAdapter();
+    }
+
+    if (action.equals("isenabled")) {
+
+      if ((bluetoothAdapter != null) && bluetoothAdapter.isEnabled()) {
+        callbackContext.success();
+        return true;
+      } else {
+        callbackContext.error("Bluetooth is currently disabled");
+        return false;
+      }
+
+    } else if (action.equals("enable")) {
+
+      enableBluetoothCallback = callbackContext;
+      Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+      cordova.startActivityForResult(this, intent, REQUEST_ENABLE_BLUETOOTH);
+      return true;
+
+    } else if (action.equals("find")) {
 
       // Does a BLE plugin need to spawn a thread? Getting weird warning about thread sleep in logs?
       // changing the callback handling to see if it fixes the issue.
@@ -125,7 +188,7 @@ public class PTBeanPlugin extends CordovaPlugin {
 
       if ((PTBeanPlugin.beanList == null) || (PTBeanPlugin.beanList.size() == 0)) {
         callbackContext.error("Bean list not populated, please call 'find' first");
-        return true;
+        return false;
       }
 
       // defaults to first bean
@@ -153,12 +216,12 @@ public class PTBeanPlugin extends CordovaPlugin {
 
       if (PTBeanPlugin.beanSelected == null) {
         callbackContext.error("Cannot connect to bean, please call 'select' first");
-        return true;
+        return false;
       }
 
       if (PTBeanPlugin.beanSelected.isConnected()) {
         callbackContext.error("Cannot connect to bean, appears to be already connected");
-        return true;
+        return false;
       }
 
       Log.i(TAG, "Connecting Bean: " + PTBeanPlugin.beanSelected.getDevice().getAddress());
@@ -180,12 +243,12 @@ public class PTBeanPlugin extends CordovaPlugin {
 
       if (PTBeanPlugin.beanSelected == null) {
         callbackContext.error("Cannot disconnect, please call 'select' and 'connect' first");
-        return true;
+        return false;
       }
 
       if (!PTBeanPlugin.beanSelected.isConnected()) {
         callbackContext.error("Cannot disconnect from bean, does not appear to be connected");
-        return true;
+        return false;
       }
 
       Log.i(TAG, "Disconnecting Bean: " + PTBeanPlugin.beanSelected.getDevice().getAddress());
@@ -197,8 +260,8 @@ public class PTBeanPlugin extends CordovaPlugin {
     } else if (action.equals("serial")) {
 
       if ((PTBeanPlugin.beanSelected == null) || (!PTBeanPlugin.beanSelected.isConnected())) {
-        callbackContext.error("Cannot sent serial data to bean, not connected");
-        return true;
+        callbackContext.error("Cannot send serial data to bean, not connected");
+        return false;
       }
 
       if ((args != null) && (args.length() > 0)) {
@@ -212,14 +275,14 @@ public class PTBeanPlugin extends CordovaPlugin {
 
       } else {
         callbackContext.error("No data to send to bean, please provide args");
-        return true;
+        return false;
       }
 
     } else if (action.equals("temperature")) {
 
       if ((PTBeanPlugin.beanSelected == null) || (!PTBeanPlugin.beanSelected.isConnected())) {
         callbackContext.error("Cannot get temerature from bean, not connected");
-        return true;
+        return false;
       }
 
       Log.i(TAG, "Reading bean temperature");
@@ -234,7 +297,7 @@ public class PTBeanPlugin extends CordovaPlugin {
           } catch (JSONException ex) {
             Log.i(TAG, "Exception converting temperature to JSON: " + ex.toString());
             callbackContext.error(ex.toString());
-            return;
+            return false;
           }
 
           callbackContext.success(jInfo);
@@ -247,7 +310,7 @@ public class PTBeanPlugin extends CordovaPlugin {
 
       if ((PTBeanPlugin.beanSelected == null) || (!PTBeanPlugin.beanSelected.isConnected())) {
         callbackContext.error("Cannot set LED on bean, not connected");
-        return true;
+        return false;
       }
 
       if ((args != null) && (args.length() > 2)) {
