@@ -1,0 +1,8 @@
+{
+  "name": "cordova-plugin-ngbean",
+  "author": "abrahamdanielj@gmail.com",
+  "homepage": "http://github.com/djabraham/cordova-plugin-ngbean",
+  "description": "Cordova Plugin Demo for PunchThrough Bean",
+  "private": false,
+  "license": "MIT"
+}

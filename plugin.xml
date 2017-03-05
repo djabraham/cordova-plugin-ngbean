@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    id="cordova-plugin-ngbean"
+    version="0.0.11">
+    <name>cordova-plugin-ngbean</name>
+    <description>Cordova Plugin Demo for PunchThrough Bean</description>
+    <license>MIT</license>
+
+    <js-module src="www/PTBeanPlugin.js" name="PTBeanPlugin">
+        <clobbers target="PTBeanPlugin" />
+    </js-module>
+
+    <!-- android -->
+    <platform name="android">
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="PTBeanPlugin" >
+                <param name="android-package" value="com.ekgee.ngbean.PTBeanPlugin"/>
+                <param name="onload" value="false" />
+            </feature>
+        </config-file>
+
+        <framework src="com.punchthrough.bean.sdk:sdk:2.1.1" />
+        <source-file src="src/android/PTBeanPlugin.java" target-dir="src/android" />
+        <source-file src="src/android/PTBeanListener.java" target-dir="src/android" />
+    </platform>
+</plugin>
