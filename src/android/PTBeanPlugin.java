@@ -91,12 +91,12 @@ public class PTBeanPlugin extends CordovaPlugin {
     if (requestCode == REQUEST_ENABLE_BLUETOOTH) {
 
       if (resultCode == Activity.RESULT_OK) {
-        LOG.i(TAG, "User enabled Bluetooth");
+        Log.i(TAG, "User enabled Bluetooth");
         if (enableBluetoothCallback != null) {
           enableBluetoothCallback.success();
         }
       } else {
-        LOG.i(TAG, "User didn't enable Bluetooth");
+        Log.i(TAG, "User didn't enable Bluetooth");
         if (enableBluetoothCallback != null) {
           enableBluetoothCallback.error("User didn't enable Bluetooth");
         }
@@ -115,7 +115,7 @@ public class PTBeanPlugin extends CordovaPlugin {
           .hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE) && Build.VERSION.SDK_INT >= 18;
 
       if (!hardwareSupportsBLE) {
-        LOG.w(TAG, "BLE communication is not supported");
+        Log.w(TAG, "BLE communication is not supported");
         callbackContext.error("BLE communication is not supported");
         return false;
       }
@@ -297,7 +297,7 @@ public class PTBeanPlugin extends CordovaPlugin {
           } catch (JSONException ex) {
             Log.i(TAG, "Exception converting temperature to JSON: " + ex.toString());
             callbackContext.error(ex.toString());
-            return false;
+            return;
           }
 
           callbackContext.success(jInfo);
