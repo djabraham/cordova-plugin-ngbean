@@ -151,8 +151,10 @@ public class PTBeanPlugin extends CordovaPlugin {
 
     } else if (action.equals("find")) {
 
-      // Does a BLE plugin need to spawn a thread? Getting weird warning about thread sleep in logs?
-      // changing the callback handling to see if it fixes the issue.
+      if ((PTBeanPlugin.beanSelected != null) && (PTBeanPlugin.beanSelected.isConnected())) {
+        callbackContext.error("Should not scan for beans while connected, please 'disconnect' first");
+        return false;
+      }
 
       // final ArrayList<Bean> beanList = this.beanList;
       BeanDiscoveryListener discovery = new BeanDiscoveryListener() {
@@ -182,6 +184,11 @@ public class PTBeanPlugin extends CordovaPlugin {
 
       Log.i(TAG, "Bean discovery started, timeout seconds setting: " + timeout.toString());
 
+      if (PTBeanPlugin.beanSelected != null) {
+        PTBeanPlugin.beanSelected = null;
+      }
+
+      PTBeanPlugin.beanList.clear();
       BeanManager.getInstance().setScanTimeout(timeout);    // optional, default is 30 seconds
       BeanManager.getInstance().startDiscovery(discovery);
 
