@@ -1,6 +1,7 @@
 package com.ekgee.ngbean;
 
 import org.apache.cordova.CallbackContext;
+import org.apache.cordova.PluginResult;
 
 import android.util.Log;
 
@@ -28,6 +29,18 @@ public class PTBeanListener {
   public BeanListener listener = null;
   public CallbackContext stickyCallbackContext = null;
 
+  public void success(JSONObject jinfo) {
+    PluginResult result = new PluginResult(PluginResult.Status.OK, jinfo);
+    result.setKeepCallback(true);
+    stickyCallbackContext.sendPluginResult(result);
+  }
+
+  public void error(String message) {
+    PluginResult result = new PluginResult(PluginResult.Status.ERROR, message);
+    result.setKeepCallback(true);
+    stickyCallbackContext.sendPluginResult(result);
+  }
+
   public PTBeanListener(Context context, final Bean bean, final CallbackContext callbackContext) {
     this.stickyCallbackContext = callbackContext;
     this.context = context;
@@ -46,7 +59,7 @@ public class PTBeanListener {
           public void onResult(DeviceInfo deviceInfo) {
             if (deviceInfo == null) {
   	          Log.i(TAG, "Bean connection returned null deviceInfo");
-              stickyCallbackContext.error("Received unexpected results on bean.readDeviceInfo");
+              error("Received unexpected results on bean.readDeviceInfo");
               return;
             }
 
@@ -61,12 +74,12 @@ public class PTBeanListener {
               jInfo.put("sofwareVersion", deviceInfo.softwareVersion());
             } catch (JSONException ex) {
   	          Log.i(TAG, "Exception converting to JSON: " + ex.toString());
-              stickyCallbackContext.error(ex.toString());
+              error(ex.toString());
               return;
             }
 
 	          Log.i(TAG, "Bean connection successful");
-            stickyCallbackContext.success(jInfo);
+            success(jInfo);
           }
         });
       }
@@ -84,11 +97,11 @@ public class PTBeanListener {
           jInfo.put("type", "connectionFailed");
         } catch (JSONException ex) {
           Log.i(TAG, "Exception converting to JSON: " + ex.toString());
-          stickyCallbackContext.error(ex.toString());
+          error(ex.toString());
           return;
         }
 
-        stickyCallbackContext.success(jInfo);
+        success(jInfo);
       }
 
       /**
@@ -103,11 +116,11 @@ public class PTBeanListener {
           jInfo.put("type", "disconnected");
         } catch (JSONException ex) {
           Log.i(TAG, "Exception converting to JSON: " + ex.toString());
-          stickyCallbackContext.error(ex.toString());
+          error(ex.toString());
           return;
         }
 
-        stickyCallbackContext.success(jInfo);
+        success(jInfo);
       }
 
       /**
@@ -126,11 +139,11 @@ public class PTBeanListener {
           jInfo.put("data", data.toString());
         } catch (JSONException ex) {
           Log.i(TAG, "Exception converting to JSON: " + ex.toString());
-          stickyCallbackContext.error(ex.toString());
+          error(ex.toString());
           return;
         }
 
-        stickyCallbackContext.success(jInfo);
+        success(jInfo);
       }
 
       /**
@@ -150,11 +163,11 @@ public class PTBeanListener {
           jInfo.put("value", value.toString());
         } catch (JSONException ex) {
           Log.i(TAG, "Exception converting to JSON: " + ex.toString());
-          stickyCallbackContext.error(ex.toString());
+          error(ex.toString());
           return;
         }
 
-        stickyCallbackContext.success(jInfo);
+        success(jInfo);
       }
 
       /**
@@ -170,11 +183,11 @@ public class PTBeanListener {
           jInfo.put("code", error);
         } catch (JSONException ex) {
           Log.i(TAG, "Exception converting to JSON: " + ex.toString());
-          stickyCallbackContext.error(ex.toString());
+          error(ex.toString());
           return;
         }
 
-        stickyCallbackContext.success(jInfo);
+        success(jInfo);
       }
 
       /**
@@ -191,11 +204,11 @@ public class PTBeanListener {
           jInfo.put("rssi", rssi);
         } catch (JSONException ex) {
           Log.i(TAG, "Exception converting to JSON: " + ex.toString());
-          stickyCallbackContext.error(ex.toString());
+          error(ex.toString());
           return;
         }
 
-        stickyCallbackContext.success(jInfo);
+        success(jInfo);
       }
     };
   }

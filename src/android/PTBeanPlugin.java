@@ -297,7 +297,7 @@ public class PTBeanPlugin extends CordovaPlugin {
     } else if (action.equals("temperature")) {
 
       if ((PTBeanPlugin.beanSelected == null) || (!PTBeanPlugin.beanSelected.isConnected())) {
-        callbackContext.error("Cannot get temerature from bean, not connected");
+        callbackContext.error("Cannot get temperature from bean, not connected");
         return true;
       }
 
@@ -355,7 +355,11 @@ public class PTBeanPlugin extends CordovaPlugin {
 
 		} else {
 
-      return super.execute(action, args, callbackContext);
+      // return super.execute(action, args, callbackContext);
+      Log.d(TAG, "Unrecognized Action: " + action);
+      callbackContext.success();
+      return true;
+
 		}
 	}
 }
