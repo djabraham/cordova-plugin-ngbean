@@ -117,7 +117,7 @@ public class PTBeanPlugin extends CordovaPlugin {
       if (!hardwareSupportsBLE) {
         Log.w(TAG, "BLE communication is not supported");
         callbackContext.error("BLE communication is not supported");
-        return false;
+        return true;
       }
 
       BluetoothManager bluetoothManager = (BluetoothManager) activity.getSystemService(Context.BLUETOOTH_SERVICE);
@@ -136,7 +136,7 @@ public class PTBeanPlugin extends CordovaPlugin {
       } catch (JSONException ex) {
         Log.i(TAG, "Exception creating JSON: " + ex.toString());
         callbackContext.error(ex.toString());
-        return false;
+        return true;
       }
 
       callbackContext.success(jInfo);
@@ -144,6 +144,7 @@ public class PTBeanPlugin extends CordovaPlugin {
 
     } else if (action.equals("enable")) {
 
+		  Log.i(TAG, "Enableing Bluetooth");
       enableBluetoothCallback = callbackContext;
       Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
       cordova.startActivityForResult(this, intent, REQUEST_ENABLE_BLUETOOTH);
@@ -153,7 +154,7 @@ public class PTBeanPlugin extends CordovaPlugin {
 
       if ((PTBeanPlugin.beanSelected != null) && (PTBeanPlugin.beanSelected.isConnected())) {
         callbackContext.error("Should not scan for beans while connected, please 'disconnect' first");
-        return false;
+        return true;
       }
 
       // final ArrayList<Bean> beanList = this.beanList;
@@ -203,7 +204,7 @@ public class PTBeanPlugin extends CordovaPlugin {
 
       if ((PTBeanPlugin.beanList == null) || (PTBeanPlugin.beanList.size() == 0)) {
         callbackContext.error("Bean list not populated, please call 'find' first");
-        return false;
+        return true;
       }
 
       // defaults to first bean
@@ -231,12 +232,12 @@ public class PTBeanPlugin extends CordovaPlugin {
 
       if (PTBeanPlugin.beanSelected == null) {
         callbackContext.error("Cannot connect to bean, please call 'select' first");
-        return false;
+        return true;
       }
 
       if (PTBeanPlugin.beanSelected.isConnected()) {
         callbackContext.error("Cannot connect to bean, appears to be already connected");
-        return false;
+        return true;
       }
 
       Log.i(TAG, "Connecting Bean: " + PTBeanPlugin.beanSelected.getDevice().getAddress());
@@ -258,12 +259,12 @@ public class PTBeanPlugin extends CordovaPlugin {
 
       if (PTBeanPlugin.beanSelected == null) {
         callbackContext.error("Cannot disconnect, please call 'select' and 'connect' first");
-        return false;
+        return true;
       }
 
       if (!PTBeanPlugin.beanSelected.isConnected()) {
         callbackContext.error("Cannot disconnect from bean, does not appear to be connected");
-        return false;
+        return true;
       }
 
       Log.i(TAG, "Disconnecting Bean: " + PTBeanPlugin.beanSelected.getDevice().getAddress());
@@ -276,7 +277,7 @@ public class PTBeanPlugin extends CordovaPlugin {
 
       if ((PTBeanPlugin.beanSelected == null) || (!PTBeanPlugin.beanSelected.isConnected())) {
         callbackContext.error("Cannot send serial data to bean, not connected");
-        return false;
+        return true;
       }
 
       if ((args != null) && (args.length() > 0)) {
@@ -290,14 +291,14 @@ public class PTBeanPlugin extends CordovaPlugin {
 
       } else {
         callbackContext.error("No data to send to bean, please provide args");
-        return false;
+        return true;
       }
 
     } else if (action.equals("temperature")) {
 
       if ((PTBeanPlugin.beanSelected == null) || (!PTBeanPlugin.beanSelected.isConnected())) {
         callbackContext.error("Cannot get temerature from bean, not connected");
-        return false;
+        return true;
       }
 
       Log.i(TAG, "Reading bean temperature");
@@ -325,7 +326,7 @@ public class PTBeanPlugin extends CordovaPlugin {
 
       if ((PTBeanPlugin.beanSelected == null) || (!PTBeanPlugin.beanSelected.isConnected())) {
         callbackContext.error("Cannot set LED on bean, not connected");
-        return false;
+        return true;
       }
 
       if ((args != null) && (args.length() > 2)) {
